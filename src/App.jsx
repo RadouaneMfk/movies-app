@@ -1,122 +1,83 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import React, { useEffect, useState } from "react";
+import Search from "./components/Search";
+import { loadingSpinner } from "./components/Spinner";
 
-function App() {
-  const [count, setCount] = useState(0)
+const API_BASE_URL ='https://api.themoviedb.org/3';
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+const API_TOKEN = import.meta.env.VITE_TMDB_API_TOKEN;
 
-      <div className="ticks"></div>
+const API_OPTIONS = {
+	method: 'GET',
+	headers: {
+		accept: 'application/json',
+		Authorization: `Bearer ${API_TOKEN}`,
+	}
+}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+const App = () => {
+	const [searchTerm, setSearchTerm] = useState('');
+	const [movieList, setMovieList] = useState([]);
+	const [errorMsg, setErrorMsg] = useState('');
+	const [isLoading, setIsLoading] = useState(false);
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+	
+	const fetchMovies = async() => {
+		setIsLoading(true);
+		setErrorMsg('');
+
+		try {
+			const endpoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+			const response = await fetch(endpoint, API_OPTIONS);
+			if (!response.ok) {
+				throw new Error('Failed to Fetch movies');
+			}
+			const data = await response.json();
+			if (data.Response === 'False') {
+				setErrorMsg(data.Error || 'Error fetching movies!');
+				setMovieList([]);
+				return;
+			}
+			setMovieList(data.results || []);
+		} catch (error) {
+			console.log(`error in fetching movies: ${error}`);
+			setErrorMsg('Error fetching movies! please try again later.');
+		} finally {
+			setIsLoading(false);
+		}
+	}
+	useEffect(() => {
+		fetchMovies();
+	}, []);
+	return (
+	<main>
+		<div className="pattern" />
+
+		<div className="wrapper">
+			<header>
+				<img src="./src/assets/hero.png" alt="Hero Banner" />
+				<h1>Find <span className="text-gradient" >Movies</span> You'll Enjoy Without The Hassle</h1>
+				<Search searchTerm={searchTerm} setSearchTerm={setSearchTerm}/>
+			</header>
+			<section>
+				<h2 className="mt-5">All Movies</h2>
+				{
+					!isLoading ? (
+					<loadingSpinner />
+					) : errorMsg ? (
+						<p className="text-red-500">{errorMsg}</p>
+					) : (
+						<ul>
+							{movieList.map((movie) => (
+									<p key={movie.id} className="text-white">{movie.title}</p>
+								)
+							)}
+						</ul>
+					)
+				}
+			</section>
+		</div>
+	</main>
+	)
 }
 
 export default App
