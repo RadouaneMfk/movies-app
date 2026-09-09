@@ -11,9 +11,11 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
-    "flowbite-react": "^0.10.2",
+    "appwrite": "^27.0.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-spinners": "^0.17.1",
+    "react-use": "^17.6.1",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {

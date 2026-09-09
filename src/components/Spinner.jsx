@@ -1,6 +1,10 @@
+import { ScaleLoader } from "react-spinners";
 
-import { Spinner } from "flowbite-react";
-
-export function loadingSpinner() {
-  return <Spinner aria-label="Loading..." />;
+export function LoadingSpinner() {
+  return (
+      <ScaleLoader
+        color="#AB8BFF"
+      />
+  );
 }
+
