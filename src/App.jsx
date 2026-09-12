@@ -3,7 +3,7 @@ import Search from "./components/Search";
 import { LoadingSpinner } from "./components/Spinner";
 import { MovieCard } from "./components/MovieCard";
 import { useDebounce } from "react-use";
-import { updateSearchCount } from "./appwrite";
+import { getTrendingMovies, updateSearchCount } from "./appwrite";
 
 const API_BASE_URL ='https://api.themoviedb.org/3';
 
@@ -22,6 +22,7 @@ const App = () => {
 	const [movieList, setMovieList] = useState([]);
 	const [errorMsg, setErrorMsg] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
+	const [trendingMovies, setTrendingMovies] = useState([]);
 	const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
 
 	useDebounce(() => setDebouncedSearchTerm(searchTerm), 500, [searchTerm]);
@@ -57,9 +58,24 @@ const App = () => {
 			setIsLoading(false);
 		}
 	}
+
+	const fetchTrendingMovies = async() => {
+		try {
+			const result = await getTrendingMovies();
+			setTrendingMovies(result);
+		} catch (error) {
+			console.log(`error fetching trending movies: ${error}`);
+		}
+	}
+
 	useEffect(() => {
 		fetchMovies(debouncedSearchTerm);
 	}, [debouncedSearchTerm]);
+
+	useEffect(() => {
+		fetchTrendingMovies();
+	}, []);
+
 	return (
 	<main>
 		<div className="pattern" />
@@ -70,8 +86,23 @@ const App = () => {
 				<h1>Find <span className="text-gradient" >Movies</span> You'll Enjoy Without The Hassle</h1>
 				<Search searchTerm={searchTerm} setSearchTerm={setSearchTerm}/>
 			</header>
+			<section className="trending">
+				{trendingMovies.length > 0} && (
+					<h2>Trending Movies</h2>
+					<ul>
+						{trendingMovies.map((movie, index) => (
+							<li key={movie.$id}>
+								<p>{index + 1}</p>
+								<img src={movie.poster_url} alt={movie.title} />
+							</li>
+						))}
+					</ul>
+				)
+			</section>
+
+
 			<section className="all-movies">
-				<h2 className="mt-[40px]">All Movies</h2>
+				<h2>All Movies</h2>
 				{
 					isLoading ? (
 					< LoadingSpinner />
